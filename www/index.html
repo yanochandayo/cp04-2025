@@ -72,11 +72,11 @@
    
     // 座標を計算
     // getX(中心x座標,角度(1で一周),長さ(1で最大)
-    function getX(cx,d,r){
-    return cx - Math.sin(d*2*3.14)*cx*r;
+function getX(cx,d,r){
+    return cx + Math.sin(-d*2*3.14)*cx*r;
 }
 function getY(cy,d,r){
-    return cy + Math.cos(d*2*3.14)*cy*r;
+    return cy - Math.cos(-d*2*3.14)*cy*r;
 }
 
     // 線を描く
