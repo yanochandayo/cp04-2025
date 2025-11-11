@@ -1,4 +1,4 @@
-<!DOCTYPE  HTML>
+<!DOCTYPE HTML>
 <html>
 <head>
   <meta charset="utf-8">
@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="lib/onsenui/css/onsen-css-components.css">
   <link rel="stylesheet" href="css/style.css">
   <style>
- 
+
   </style>
   <script>
     // timer処理
@@ -20,70 +20,70 @@
             timer();
         },500);
     });  
-     
+      
     // ready クリックの処理の登録
-    $(function() {
+    $(function() { 
         $('#date').click(function(e) {
             setDebugMode(e);
         });
-     
+      
         $('#btnA').click(function(e) {
             btnAClick(e);
         });
- 
+
         $('#btnB').click(function(e) {
             btnBClick(e);
         });
- 
+
         $('#btnC').click(function(e) {
             btnCClick(e);
         });
         init();
     });
-   
+    
     function rgbToColor(r,g,b){
         return "#" + hex02(r)+hex02(g)+hex02(b);
     }
-   
+    
     function hex02(x) {
         var str = "0"+x.toString(16);
         return str.substring(str.length-2);
     }
-   
+    
     function decS2(x) {
         if (x<10) {
             return "&nbsp;"+x.toString(10);
-        } else {
+        } else { 
             return x.toString(10);
         }
     }
-   
+    
     function dec02(x) {
         var str = "0"+x.toString(10);
         return str.substring(str.length-2);        
     }
- 
+
     var debug = false;
     // Statusがクリックされた時の処理
     function setDebugMode(e){
         debug = !debug;
         $("#status").html("Debug Mode: "+debug);
     }
-   
+    
     // 座標を計算
     // getX(中心x座標,角度(1で一周),長さ(1で最大)
-function getX(cx,d,r){
-    return cx + Math.sin(-d*2*3.14)*cx*r;
-}
-function getY(cy,d,r){
-    return cy - Math.cos(-d*2*3.14)*cy*r;
-}
-
+    function getX(cx,d,r){
+        return cx + Math.sin(d*2*3.14)*cx*r;
+    }
+    // getY(中心y座標,角度(1で一周),長さ(1で最大)
+    function getY(cy,d,r){
+        return cy - Math.cos(d*2*3.14)*cy*r;
+    }
     // 線を描く
     // line(context,x1,y1,x2,y2,線の太さ,色)    
     function line(ctx,x1,y1,x2,y2,width,color){
-        ctx.lineWidth = width;
-        ctx.lineCap = "round";
+        ctx.lineWidth = width; 
+        ctx.lineCap = "round"; 
         ctx.strokeStyle = color;
         ctx.beginPath();
         ctx.moveTo(x1, y1);
@@ -94,32 +94,32 @@ function getY(cy,d,r){
     function clock(hour,minute,second,hide){
         var canvas = $('#mycanvas')[0];
         var ctx = canvas.getContext('2d');
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'; 
         ctx.fillRect(0,0,canvas.width,canvas.height);
         var cx = canvas.width/2;
         var cy = canvas.height/2;
         var ds = second/60;
         var dm = (minute+ds)/60;
         var dh = (hour%12+dm)/12;
- 
+
         for(var i = 0; i < 60; i++) {
             var px = getX(cx,i/60,0.9);
             var py = getY(cy,i/60,0.9);
-            ctx.fillStyle = 'rgb(0, 255, 0)';
+            ctx.fillStyle = 'rgb(0, 255, 0)'; 
             ctx.beginPath();
             ctx.arc(px, py, 2, 0, Math.PI*2, false);
             ctx.fill();
         }
-       
+        
         for(var i = 0; i < 12; i++) {
             var px = getX(cx,i/12,0.9);
             var py = getY(cy,i/12,0.9);
-            ctx.fillStyle = 'rgb(255, 255, 0)';
+            ctx.fillStyle = 'rgb(255, 255, 0)'; 
             ctx.beginPath();
             ctx.arc(px, py, 5, 0, Math.PI*2, false);
             ctx.fill();
         }
- 
+
         if ((!hide) || hour > 0) {
             var px = getX(cx,dh,0.4);
             var py = getY(cy,dh,0.4);
@@ -134,111 +134,180 @@ function getY(cy,d,r){
         var py = getY(cy,ds,0.9);
         line(ctx,cx,cy,px,py,5, 'rgb(128, 100, 255)')
     }
- 
+
     // 残り秒数アナログ表示
     function analog(rest){
         var h = parseInt(rest/3600);
         var m = parseInt((rest-h*3600)/60);
         var s = parseInt(rest-h*3600-m*60);
         clock(h,m,s,true);
- 
+
     }
- 
- 
- 
+
+
+
 // これより上は編集しなくて良い
- 
- 
+
+
     // 変数宣言
-   var active=false;
-    var startTime=0;
-    var period=0;
-    var rest=0;
-    var etime=0;
- 
- 
-   
+    var timerRunning = false;  // タイマーが動作中かどうか
+    var remainingTime = 0;     // 残り時間(秒)
+    var totalTime = 0;         // 合計時間(秒)
+    var lastUpdateTime = 0;    // 最後に更新した時刻
+    var audio = new Audio('pin.wav');  // タイマー音
+
+    
     // ボタンの初期設定
     function init(){
         $('#btnA').prop('disabled', false);
-        $('#btnB').prop('disabled', false);
+        $('#btnB').prop('disabled', true);  // 最初はstopボタンを無効化
         $('#btnC').prop('disabled', false);
-       
+        
+        // 初期画像を表示
+        var canvas = $('#mycanvas')[0];
+        var ctx = canvas.getContext('2d');
+        var img = new Image();
+        img.onload = function() {
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        };
+        img.src = 'ksuisbg.gif';
     }
- 
+
     // Alarmの処理
     function alarm(){
-        var canvas=$("#mycanvas")[0];
-        var ctx=canvas.getContext("2d");
-        var img=new Image();
-        img.src="ksuisbg.gif";
-        img.onload=function(){
-            ctx.drawImage(img,0,0,300,300);
-        };
-        var audio=new Audio();
-        audio.src="pin.wav";
         audio.play();
- 
-       
     }
-   
-    // ButtonAがクリックされた時の処理
+    
+    // ButtonA(Start)がクリックされた時の処理
     function btnAClick(e){
-        active=true;
-        startTime=new Date();
-       
-       
+        if (!timerRunning) {
+            // タイマーが停止中の場合
+            if (remainingTime === 0) {
+                // 初回スタート:入力値から残り時間を設定
+                var minutes = parseInt($('#minute').val()) || 0;
+                var seconds = parseInt($('#second').val()) || 0;
+                remainingTime = minutes * 60 + seconds;
+                totalTime = remainingTime;  // 合計時間を記録
+            }
+            // タイマー開始(再開)
+            timerRunning = true;
+            lastUpdateTime = Date.now();
+            $('#btnA').prop('disabled', true);   // startボタンを無効化
+            $('#btnB').prop('disabled', false);  // stopボタンを有効化
+        }
     }
- 
-    // ButtonBがクリックされた時の処理
+
+    // ButtonB(Stop)がクリックされた時の処理
     function btnBClick(e){
-        active=false;
-       
-       
+        if (timerRunning) {
+            // タイマーを一時停止
+            timerRunning = false;
+            $('#btnA').prop('disabled', false);  // startボタンを有効化
+            $('#btnB').prop('disabled', true);   // stopボタンを無効化
+        }
     }
- 
-    // ButtonCがクリックされた時の処理
+
+    // ButtonC(Reset)がクリックされた時の処理
     function btnCClick(e){
-        alarm();
-        active=false;
-        period=60*parseInt($("#minute").val())+parseInt($("#second").val());$("#time").html("経過時間:0");
-        $("#remain").html("残り時間:"+period);
-       
+        // タイマーをリセット
+        timerRunning = false;
+        remainingTime = 0;
+        totalTime = 0;
+        $('#btnA').prop('disabled', false);
+        $('#btnB').prop('disabled', true);
+        
+        // 初期画像を表示
+        var canvas = $('#mycanvas')[0];
+        var ctx = canvas.getContext('2d');
+        var img = new Image();
+        img.onload = function() {
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        };
+        img.src = 'ksuisbg.gif';
+        
+        $('#minuteStr').html('〇');
+        $('#secondStr').html('〇');
+        $('#time').html('Time');
     }
-   
+    
  
     // 繰り返し実行する処理
     function timer(){  
-        if(active){
-            etime=parseInt((new Date()-startTime)/1000);
-            rest=period-etime;
-            $("#time").html("経過時間:"+etime);
-            $("#remain").html("残り時間:" + rest);
-            analog(rest);
-           if (rest <= 0) {
-      active = false;
-      alarm();
-     
-  }
+        if (timerRunning && remainingTime > 0) {
+            // タイマー動作中
+            var currentTime = Date.now();
+            var elapsed = (currentTime - lastUpdateTime) / 1000;  // 経過時間(秒)
+            
+            if (elapsed >= 0.5) {  // 0.5秒ごとに更新
+                remainingTime -= elapsed;
+                lastUpdateTime = currentTime;
+                
+                if (remainingTime <= 0) {
+                    remainingTime = 0;
+                    timerRunning = false;
+                    alarm();  // タイマー終了時(0秒)にアラーム
+                    $('#btnA').prop('disabled', false);
+                    $('#btnB').prop('disabled', true);
+                }
+            }
+            
+            // 残り時間を表示
+            var h = parseInt(remainingTime / 3600);
+            var m = parseInt((remainingTime - h * 3600) / 60);
+            var s = parseInt(remainingTime - h * 3600 - m * 60);
+            
+            $('#minuteStr').html(decS2(h) + '時間' + dec02(m) + '分');
+            $('#secondStr').html(dec02(s) + '秒');
+            $('#time').html(dec02(h) + ':' + dec02(m) + ':' + dec02(s));
+            
+            // アナログ時計表示(経過時間を渡す)
+            var elapsedTime = totalTime - remainingTime;
+            analog(elapsedTime);
+            
+        } else if (!timerRunning && remainingTime === 0) {
+            // タイマー未開始の状態:初期画像を表示
+            var canvas = $('#mycanvas')[0];
+            var ctx = canvas.getContext('2d');
+            var img = new Image();
+            img.onload = function() {
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            };
+            img.src = 'ksuisbg.gif';
+            
+            $('#minuteStr').html('〇');
+            $('#secondStr').html('〇');
+            $('#time').html('Time');
+            
+        } else if (!timerRunning && remainingTime > 0) {
+            // 一時停止中:現在の残り時間を表示
+            var h = parseInt(remainingTime / 3600);
+            var m = parseInt((remainingTime - h * 3600) / 60);
+            var s = parseInt(remainingTime - h * 3600 - m * 60);
+            
+            $('#minuteStr').html(decS2(h) + '時間' + dec02(m) + '分');
+            $('#secondStr').html(dec02(s) + '秒');
+            $('#time').html(dec02(h) + ':' + dec02(m) + ':' + dec02(s));
+            
+            // アナログ時計表示(経過時間を渡す)
+            var elapsedTime = totalTime - remainingTime;
+            analog(elapsedTime);
         }
-       
-       
-    }
- 
+    } 
+
   </script>
 </head>
 <body>
-    <canvas id="mycanvas" width="200" height="200">Test</canvas>
- 
+    <canvas id="mycanvas" width="300" height="300">Test</canvas>
+
     <div id="minuteStr">〇</div>
     <div id="secondStr">〇</div>
- 
+
     <div id="remain">Remaining time</div>
     <div id="time">Time</div>
     <button id="btnA">Start</button>  
     <button id="btnB">Stop</button>  
-    <button id="btnC">Set</button>  
-    <input type="number" id="minute" value=0 >
-    <input type="number" id="second" value=15 >
+    <button id="btnC">Reset</button>  
+    <input type="number" id="minute" value=3 >
+    <input type="number" id="second" value=0 >
 </body>
 </html>
